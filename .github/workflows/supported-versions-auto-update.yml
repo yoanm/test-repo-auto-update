@@ -157,22 +157,21 @@ jobs:
           ISSUE_URL=$(gh issue list --search "state:open author:@me \"${ISSUE_TITLE}\"" --json url --jq '.[0].url')
           if [[ -z "${ISSUE_URL}" ]]; then
             echo "Creating new issue"
-            gh issue create --title "${ISSUE_TITLE}" --body "${ISSUE_BODY_HEADER}" --assignee "${ASSIGNEE_HANDLES}"
+            gh issue create --title "${ISSUE_TITLE}" --body "${ISSUE_BODY_HEADER}" --assignee "${ASSIGNEE_HANDLES}" >> issue_url.txt
 
-            ISSUE_ID=$(gh issue list --search "state:open author:@me \"${ISSUE_TITLE}\"" --json id --jq '.[0].id')
-            if [[ -z "${ISSUE_ID}" ]]; then
-              echo "::error::Unable to retrieve the issue id !"
+            if [[ -z "${ISSUE_URL}" ]]; then
+              echo "::error::Unable to retrieve the issue url !"
               exit 1
             fi
 
-            # Update issue with proper link to create the PR
+            echo "Update issue with proper link to create the PR"
             PR_ENCODED_TITLE=$(jq -rn --arg x "${ISSUE_TITLE}" '$x|@uri')
             PR_BODY_ENCODED=$(jq -rn --arg x "${BODY_FILE}" '$x|@uri')
             echo "${ISSUE_BODY_HEADER}" > ${BODY_FILE}
             echo "" >> ${BODY_FILE}
             echo "Create PR [there](https://github.com/${REPO_NAME}/compare/${BRANCH}?quick_pull=1&assignees=${ASSIGNEE_HANDLES}&title=${PR_ENCODED_TITLE}&body=${PR_BODY_ENCODED}" >> ${BODY_FILE}
 
-            gh issue edit "${ISSUE_ID}" --body-file "${BODY_FILE}"
+            gh issue edit "${ISSUE_URL}" --body-file "${BODY_FILE}"
           else
             echo "Issue already exists: ${ISSUE_URL}"
           fi
