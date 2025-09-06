@@ -90,7 +90,7 @@ jobs:
           ISSUE_URL=$(gh issue list --search "state:open author:@me \"${ISSUE_TITLE}\"" --json url --jq '.[0].url')
           if [[ -z "${ISSUE_URL}" ]]; then
             echo "Creating new issue"
-            gh issue create --title "${ISSUE_TITLE}" --body "${ISSUE_BODY_HEADER}" --assignee "${ASSIGNEE_HANDLES}" >> issue_url.txt
+            gh issue create --title "${ISSUE_TITLE}" --body "${ISSUE_BODY_HEADER}" --assignee "${ASSIGNEE_HANDLES}" > issue_url.txt
 
             ISSUE_URL=$(cat issue_url.txt)
             if [[ -z "${ISSUE_URL}" ]]; then
