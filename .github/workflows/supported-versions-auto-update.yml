@@ -84,7 +84,7 @@ jobs:
 
       - name: Update max version
         if: ${{ steps.fetch-php-supported-versions.outputs.max != steps.fetch-php-new-versions.outputs.latest }}
-        uses: yoanm/gha-supported-versions-parser@yoanm-patch-1 # @TODO - Move to v1 !!!
+        uses: yoanm/gha-supported-versions-parser/updater@yoanm-patch-1 # @TODO - Move to v1 !!!
         with:
           path: my-repo/${{ env.V_FILE }}
           dependency: php
@@ -93,7 +93,7 @@ jobs:
 
       - name: Update nightly version
         if: ${{ steps.fetch-php-supported-versions.outputs.next != steps.fetch-php-new-versions.outputs.nightly }}
-        uses: yoanm/gha-supported-versions-parser@yoanm-patch-1 # @TODO - Move to v1 !!!
+        uses: yoanm/gha-supported-versions-parser/updater@yoanm-patch-1 # @TODO - Move to v1 !!!
         with:
           path: my-repo/${{ env.V_FILE }}
           dependency: php
