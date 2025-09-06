@@ -159,6 +159,7 @@ jobs:
             echo "Creating new issue"
             gh issue create --title "${ISSUE_TITLE}" --body "${ISSUE_BODY_HEADER}" --assignee "${ASSIGNEE_HANDLES}" >> issue_url.txt
 
+            ISSUE_URL=$(cat issue_url.txt)
             if [[ -z "${ISSUE_URL}" ]]; then
               echo "::error::Unable to retrieve the issue url !"
               exit 1
