@@ -130,6 +130,8 @@ jobs:
               -m "Update PHP supported versions (${DATE})" \
               -m "See ${SERVER_URL}/${REPO_NAME}/actions/runs/${RUN_ID}";
             git push --set-upstream origin "${BRANCH}";
+
+            gh pr create --fill --fill-first --draft
           else
             echo "Nothing to commit !";
           fi;
