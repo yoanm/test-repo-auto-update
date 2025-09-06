@@ -154,12 +154,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           ISSUE_BODY_HEADER="Supported versions file needs to be updated !"
-          ISSUE_URL=$(gh issue list --search 'state:open title:"${ISSUE_TITLE}" author:@me' --json url --jq '.[0].url')
+          ISSUE_URL=$(gh issue list --search 'state:open author:@me "${ISSUE_TITLE}"' --json url --jq '.[0].url')
           if [[ -z "${ISSUE_URL}" ]]; then
             echo "Creating new issue"
             gh issue create --title "${ISSUE_TITLE}" --body "${ISSUE_BODY_HEADER}" --assignee "${ASSIGNEE_HANDLES}"
 
-            ISSUE_ID=$(gh issue list --search 'state:open title:"${ISSUE_TITLE}" author:@me' --json id --jq '.[0].id')
+            ISSUE_ID=$(gh issue list --search 'state:open author:@me "${ISSUE_TITLE}"' --json id --jq '.[0].id')
             if [[ -z "${ISSUE_ID}" ]]; then
               echo "::error::Unable to retrieve the issue id !"
               exit 1
