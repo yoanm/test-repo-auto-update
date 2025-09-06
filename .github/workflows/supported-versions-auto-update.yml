@@ -53,12 +53,14 @@ jobs:
           git checkout "${BRANCH}" || git checkout --track origin/${DEFAULT_BRANCH} -b "${BRANCH}"
 
       - name: Update versions
+        id: update-versions
         uses: yoanm/gha-php-supported-versions-auto-update@feature/init # @TODO - Move to v1 !!!
         with:
           path: ${{ env.V_FILE }}
 
       - name: "Add / commit / push"
         id: commit-and-push
+        if: ${{ steps.update-versions.outputs.updated }}
         env:
           DATE: ${{ steps.datetime.outputs.value }}
         run: |
