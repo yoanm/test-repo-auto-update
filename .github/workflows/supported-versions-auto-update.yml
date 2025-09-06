@@ -160,7 +160,7 @@ jobs:
             gh issue create --title "${ISSUE_TITLE}" --body "${ISSUE_BODY_HEADER}" --assignee "${ASSIGNEE_HANDLES}"
 
             ISSUE_ID=$(gh issue list --search 'state:open title:"${ISSUE_TITLE}" author:@me' --json id --jq '.[0].id')
-            if [[ -z "${ISSUE_URL}" ]]; then
+            if [[ -z "${ISSUE_ID}" ]]; then
               echo "::error::Unable to retrieve the issue id !"
               exit 1
             fi
