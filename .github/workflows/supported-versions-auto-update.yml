@@ -60,7 +60,7 @@ jobs:
 
       - name: "Add / commit / push"
         id: commit-and-push
-        if: ${{ steps.update-versions.outputs.updated }}
+        if: ${{ steps.update-versions.outputs.updated == '1' }}
         env:
           DATE: ${{ steps.datetime.outputs.value }}
         run: |
