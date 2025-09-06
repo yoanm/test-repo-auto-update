@@ -7,15 +7,18 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
+  issues: write
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.ref }}"
   cancel-in-progress: true
 
 env:
+  AUTHOR_NAME: github-actions
+  AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
   V_FILE: .supported-versions.json
   UPDATE_BRANCH: auto/feature/increase-supported-version
+  ASSIGNEE_HANDLES: "yoanm"
 
 jobs:
   php:
@@ -112,19 +115,17 @@ jobs:
           cp $TMP_FILE $V_FILE
 
       - name: "Add / commit / push"
+        id: commit-and-push
         env:
           FILES: ${{ env.V_FILE }}
-          COMMIT_AUTHOR_NAME: github-actions
-          COMMIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
           DATE: ${{ steps.datetime.outputs.value }}
           SERVER_URL: ${{ github.server_url }}
           REPO_NAME: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
           BRANCH: ${{ env.UPDATE_BRANCH }}
-          GH_TOKEN: ${{ github.token }} # In order to be able to create the PR !
         run: |
-          git config user.name "${COMMIT_AUTHOR_NAME}"
-          git config user.email "${COMMIT_AUTHOR_EMAIL}"
+          git config user.name "${AUTHOR_NAME}"
+          git config user.email "${AUTHOR_EMAIL}"
           git add $FILES
           if [ $(git diff --cached --name-only | wc -l) -gt 0 ]; then
             echo "Pushing updated files:"
@@ -134,7 +135,44 @@ jobs:
               -m "See ${SERVER_URL}/${REPO_NAME}/actions/runs/${RUN_ID}";
             git push --set-upstream origin "${BRANCH}";
 
-            gh pr create --fill-first --draft
+            ISSUE_NEEDED=1
           else
             echo "Nothing to commit !";
+
+            ISSUE_NEEDED=0
           fi;
+
+          echo "issue-needed=${ISSUE_NEEDED}" >> $GITHUB_OUTPUT
+
+      - name: "Create issue"
+        if: ${{ steps.commit-and-push.outputs.issue-needed == 1 }}
+        env:
+          ISSUE_TITLE: "[AUTO] update supported versions"
+          BODY_FILE: ${{ runner.temp }}/body-file.txt
+          REPO_NAME: ${{ github.repository }}
+          BRANCH: ${{ env.UPDATE_BRANCH }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ISSUE_BODY_HEADER="Supported versions file needs to be updated !"
+          ISSUE_URL=$(gh issue list --search 'state:open title:"${ISSUE_TITLE}" author:@me' --json url --jq '.[0].url')
+          if [[ -z "${ISSUE_URL}" ]]; then
+            echo "Creating new issue"
+            gh issue create --title "${ISSUE_TITLE}" --body "${ISSUE_BODY_HEADER}" --assignee "${ASSIGNEE_HANDLES}"
+
+            ISSUE_ID=$(gh issue list --search 'state:open title:"${ISSUE_TITLE}" author:@me' --json id --jq '.[0].id')
+            if [[ -z "${ISSUE_URL}" ]]; then
+              echo "::error::Unable to retrieve the issue id !"
+              exit 1
+            fi
+
+            # Update issue with proper link to create the PR
+            PR_ENCODED_TITLE=$(jq -rn --arg x "${ISSUE_TITLE}" '$x|@uri')
+            PR_BODY_ENCODED=$(jq -rn --arg x "${BODY_FILE}" '$x|@uri')
+            echo "${ISSUE_BODY_HEADER}" > ${BODY_FILE}
+            echo "" >> ${BODY_FILE}
+            echo "Create PR [there](https://github.com/${REPO_NAME}/compare/${BRANCH}?quick_pull=1&assignees=${ASSIGNEE_HANDLES}&title=${PR_ENCODED_TITLE}&body=${PR_BODY_ENCODED)" >> ${BODY_FILE}
+
+            gh issue edit "${ISSUE_ID}" --body-file "${BODY_FILE}"
+          else
+            echo "Issue already exists: ${ISSUE_URL}"
+          fi
