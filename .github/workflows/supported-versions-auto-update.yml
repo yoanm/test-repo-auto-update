@@ -54,7 +54,7 @@ jobs:
 
       - name: Update versions
         id: update-versions
-        uses: yoanm/gha-php-supported-versions-auto-update@feature/init # @TODO - Move to v1 !!!
+        uses: yoanm/gha-php-supported-versions-auto-update@v0
         with:
           path: ${{ env.V_FILE }}
 
